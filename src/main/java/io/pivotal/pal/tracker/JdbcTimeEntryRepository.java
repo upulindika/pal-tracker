@@ -22,12 +22,6 @@ public class JdbcTimeEntryRepository implements TimeEntryRepository {
         jdbcTemplate.setDataSource(dataSource);
     }
 
-//    id         BIGINT(20) NOT NULL AUTO_INCREMENT,
-//    project_id BIGINT(20),
-//    user_id    BIGINT(20),
-//    date       DATE,
-//    hours      INT,
-
     @Override
     public TimeEntry create(TimeEntry timeEntry) {
         String INSERT = "INSERT INTO time_entries (project_id, user_id, date, hours) VALUES(?, ?, ?, ?)";
@@ -55,17 +49,26 @@ public class JdbcTimeEntryRepository implements TimeEntryRepository {
 
     @Override
     public TimeEntry update(long id, TimeEntry timeEntry) {
-        return null;
+        jdbcTemplate.update("UPDATE time_entries " +
+                        "SET project_id = ?, user_id = ?, date = ?,  hours = ? " +
+                        "WHERE id = ?",
+                timeEntry.getProjectId(),
+                timeEntry.getUserId(),
+                Date.valueOf(timeEntry.getDate()),
+                timeEntry.getHours(),
+                id);
+
+        return find(id);
     }
 
     @Override
     public void delete(long id) {
-
+        jdbcTemplate.update("DELETE FROM time_entries WHERE id = ?", id);
     }
 
     @Override
     public List<TimeEntry> list() {
-        return null;
+       return jdbcTemplate.query("SELECT id, project_id, user_id, date, hours FROM time_entries", mapper);
     }
 
     private final RowMapper<TimeEntry> mapper = (rs, rowNum) -> new TimeEntry(
